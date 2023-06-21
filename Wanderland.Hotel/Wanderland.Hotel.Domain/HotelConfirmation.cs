@@ -21,37 +21,37 @@ namespace Wanderland.Hotel.Domain
     {
         public City Origin { get; private set; }
         public City Destination { get; private set; }
-        public List<Room> Seats{ get; private set; }
-        public int SeatCount{ get; private set; }
-        public Hotel(City origin, City destination,int seatCount)
+        public List<Room> Rooms{ get; private set; }
+        public int RoomCount{ get; private set; }
+        public Hotel(City origin, City destination,int roomCount)
         {
             Origin=origin;
             Destination=destination;
-            SeatCount = seatCount;
+            RoomCount = roomCount;
             InitializeRooms();
         }
 
         private void InitializeRooms()
         {
-            Seats = new List<Room>();
-            for (int i = 1; i <= SeatCount; i++)
+            Rooms = new List<Room>();
+            for (int i = 1; i <= RoomCount; i++)
             {
-                Seats.Add(new Room(i));
+                Rooms.Add(new Room(i));
             }
         }
 
         public HotelConfirmation ReserveTicket(Passenger passenger, int roomNumber)
         {
-            Guard.Against(roomNumber==0 || roomNumber>SeatCount,new DomainException(ErrorMessage.RoomNumberIsInvalid));
+            Guard.Against(roomNumber==0 || roomNumber>RoomCount,new DomainException(ErrorMessage.RoomNumberIsInvalid));
 
-            var seat = Seats.Find(e => e.Number == roomNumber);
-            if (seat == null)
+            var room = Rooms.Find(e => e.Number == roomNumber);
+            if (room == null)
                 throw new DomainException(ErrorMessage.RoomNumberIsInvalid);
            
-            if(seat.IsReserved)
+            if(room.IsReserved)
                 throw new DomainException(ErrorMessage.RoomIsReserved);
 
-            seat.Reserve(); 
+            room.Reserve(); 
             return new HotelConfirmation(Id, passenger, roomNumber);
         }
 

@@ -16,7 +16,7 @@ namespace Wanderland.Hotel.API.Services
             if (Hotel == null)
                 throw new ApplicationException("Hotel Can't be found.");
 
-            Hotel.ReserveTicket(new Passenger(dto.PassengerId), dto.SeatNumber);
+            Hotel.ReserveTicket(new Passenger(dto.PassengerId), dto.RoomNumber);
         }
     }
 }

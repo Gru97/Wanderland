@@ -12,14 +12,14 @@ namespace Wanderland.Hotel.Domain.Test
             var destination = new City(Cities.Kish.Id);
             var Hotel = new Hotel(origin, destination, 50);
             var passenger = new Passenger(Persona.JackThePassenger.Id);
-            var seatNumber = 12;
+            var roomNumber = 12;
 
-            var ticket = Hotel.ReserveTicket(passenger, seatNumber);
+            var ticket = Hotel.ReserveTicket(passenger, roomNumber);
 
             ticket.Should().NotBeNull();
             ticket.HotelId.Should().Be(Hotel.Id);
             ticket.Passenger.Should().Be(passenger);
-            ticket.RoomNumber.Should().Be(seatNumber);
+            ticket.RoomNumber.Should().Be(roomNumber);
         }
     }
 }
