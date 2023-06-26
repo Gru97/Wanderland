@@ -12,10 +12,10 @@ namespace Wanderland.Tour.API.Controllers
         private readonly ILogger<TourController> _logger;
         private readonly TourReservationService _tourService;
 
-        public TourController(ILogger<TourController> logger)
+        public TourController(ILogger<TourController> logger, TourReservationService tourService)
         {
-            _tourService = new TourReservationService();
             _logger = logger;
+            _tourService = tourService;
         }
 
         [HttpPost(Name = "Reserve")]

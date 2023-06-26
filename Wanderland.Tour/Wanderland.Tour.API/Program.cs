@@ -1,5 +1,7 @@
 using Hellang.Middleware.ProblemDetails;
 using Microsoft.AspNetCore.Mvc;
+using Wanderland.Tour.API;
+using Wanderland.Tour.Application;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,7 +38,8 @@ builder.Services.AddProblemDetails(option =>
     });
 
 });
-
+builder.Services.ConfigureMassTransit();
+builder.Services.AddTransient<TourReservationService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
