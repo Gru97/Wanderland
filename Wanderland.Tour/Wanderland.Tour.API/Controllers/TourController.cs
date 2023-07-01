@@ -19,9 +19,9 @@ namespace Wanderland.Tour.API.Controllers
         }
 
         [HttpPost(Name = "Reserve")]
-        public IActionResult Reserve(ReserveTourDto dto)
+        public async Task<IActionResult> Reserve(ReserveTourDto dto)
         {
-            _tourService.Reserve(new ReserveTourCommand()
+            var tourId= await _tourService.Reserve(new ReserveTourCommand()
             {
                 HotelId = dto.HotelId,
                 ArrivalFlightId = dto.ArrivalFlightId,
@@ -31,7 +31,16 @@ namespace Wanderland.Tour.API.Controllers
                 RoomNumber = dto.RoomNumber,
                 CustomerId= Guid.NewGuid()
             });
-            return Ok();
+            
+            return Ok(tourId);
         }
+
+        [HttpGet("Tour/{id}/State")]
+        public async Task<IActionResult> GetTour(string id)
+        {
+            var tour= await _tourService.GetState(id);
+            return Ok(tour);
+        }
+
     }
 }

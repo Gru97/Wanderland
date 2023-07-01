@@ -3,16 +3,19 @@ using Wanderland.Tour.Application.Commands;
 
 namespace Wanderland.Tour.Application
 {
+    //https://www.youtube.com/watch?v=Vwfngk0YhLs
     public class TourReservationService
     {
         private readonly IPublishEndpoint _publishEndpoint;
+        private IRequestClient<SagaState> _requestClient;
 
-        public TourReservationService(IPublishEndpoint publishEndpoint)
+        public TourReservationService(IPublishEndpoint publishEndpoint, IRequestClient<SagaState> requestClient)
         {
             _publishEndpoint = publishEndpoint;
+            _requestClient = requestClient;
         }
 
-        public async Task Reserve(ReserveTourCommand command)
+        public async Task<Guid> Reserve(ReserveTourCommand command)
         {
             //var tour = new Tour { };
 
@@ -32,6 +35,15 @@ namespace Wanderland.Tour.Application
                 RoomNumber = command.RoomNumber,
                 TourId = tourId
             });
+
+            return tourId;
+        }
+
+        public async Task<string> GetState(string id)
+        {
+            var result= await _requestClient.GetResponse<SagaState>(new {CorrelationId= id });
+
+            return result.Message.CurrentState.ToString();
         }
     }
 
@@ -59,6 +71,8 @@ namespace Wanderland.Tour.Application
             Initially(
                 When(ReservationSubmittedEvent)
                     .Then(x => x.Saga.CurrentState = (int)TourState.Submitted)
+                    .Then(x=> Console.WriteLine($"Message received with correlationId {x.CorrelationId} and the state is {x.Saga.CurrentState}"))
+                    .Respond(context => new SagaState { CurrentState  = context.Instance.CurrentState})
                     .TransitionTo(Submitted));
 
             During(Submitted,
