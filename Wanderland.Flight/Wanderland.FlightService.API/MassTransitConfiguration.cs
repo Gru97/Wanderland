@@ -1,21 +1,15 @@
 ﻿using MassTransit;
-using Wanderland.Tour.Application;
-using Wanderland.Tour.Application.Commands;
+using Wanderland.Flight.API.Controllers;
 
-namespace Wanderland.Tour.API
+namespace Wanderland.Flight.API
 {
     public static class MassTransitConfiguration
     {
-        public static void ConfigureMassTransit(this IServiceCollection  services)
+        public static void ConfigureMassTransit(this IServiceCollection services)
         {
             services.AddMassTransit(x =>
             {
-                x.AddSagaStateMachine<TourReservationStateMachine, SagaInstance>()
-                    .InMemoryRepository();
-
-                x.AddRequestClient<SagaInstance>();
-
-
+                x.AddConsumer<ReserveFlightCommandHandler>();
                 x.UsingRabbitMq((ctx, cfg) =>
                 {
                     cfg.Host("localhost", "/", h =>

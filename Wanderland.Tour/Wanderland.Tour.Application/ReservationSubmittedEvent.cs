@@ -1,4 +1,4 @@
-﻿namespace Wanderland.Tour.Application;
+﻿namespace Wanderland.Contracts.Events;
 
 public class ReservationSubmittedEvent
 {

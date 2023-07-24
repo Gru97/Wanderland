@@ -1,4 +1,6 @@
 ﻿using MassTransit;
+using Wanderland.Contracts.Commands;
+using Wanderland.Contracts.Events;
 using Wanderland.Tour.Application.Commands;
 
 namespace Wanderland.Tour.Application
@@ -7,9 +9,9 @@ namespace Wanderland.Tour.Application
     public class TourReservationService
     {
         private readonly IPublishEndpoint _publishEndpoint;
-        private IRequestClient<SagaState> _requestClient;
+        private IRequestClient<SagaInstance> _requestClient;
 
-        public TourReservationService(IPublishEndpoint publishEndpoint, IRequestClient<SagaState> requestClient)
+        public TourReservationService(IPublishEndpoint publishEndpoint, IRequestClient<SagaInstance> requestClient)
         {
             _publishEndpoint = publishEndpoint;
             _requestClient = requestClient;
@@ -26,11 +28,11 @@ namespace Wanderland.Tour.Application
             var tourId = Guid.Parse("008f0d2e-c904-4f5d-98a9-0153bca459e6");
             await _publishEndpoint.Publish(new ReservationSubmittedEvent
             {
-                FlightId = command.ArrivalFlightId,
-                FlightSeat = command.ArrivalFlightSeat,
+                FlightId = command.FlightId,
+                FlightSeat = command.FlightSeat,
                 CustomerId = command.CustomerId,
-                ReturnFlightId = command.DepartureFlightId,
-                ReturnFlightSeat = command.DepartureFlightSeat,
+                ReturnFlightId = command.ReturnFlightId,
+                ReturnFlightSeat = command.ReturnFlightSeat,
                 HotelId = command.HotelId,
                 RoomNumber = command.RoomNumber,
                 TourId = tourId
@@ -41,13 +43,22 @@ namespace Wanderland.Tour.Application
 
         public async Task<string> GetState(string id)
         {
-            var result= await _requestClient.GetResponse<SagaState>(new {CorrelationId= id });
+            try
+            {
+                var result = await _requestClient.GetResponse<SagaInstance>(new { CorrelationId = id });
 
-            return result.Message.CurrentState.ToString();
+                return result.Message.CurrentState.ToString();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+            
         }
     }
 
-    public class TourReservationStateMachine : MassTransitStateMachine<SagaState>
+    public class TourReservationStateMachine : MassTransitStateMachine<SagaInstance>
     {
         //States
         public State Submitted { get; private set; }
@@ -67,31 +78,66 @@ namespace Wanderland.Tour.Application
             //what states we have
             InstanceState(x => x.CurrentState, Submitted, FlightReserved);
 
-            //what behaviours we have
+            //what behaviors we have
             Initially(
                 When(ReservationSubmittedEvent)
                     .Then(x => x.Saga.CurrentState = (int)TourState.Submitted)
+                    .Then(x => x.Saga.ReservationDetail = new ReservationDetail(x.Message.CustomerId, x.Message.HotelId, x.Message.RoomNumber, x.Message.FlightId,x.Message.FlightSeat,x.Message.ReturnFlightId,x.Message.ReturnFlightSeat))
                     .Then(x=> Console.WriteLine($"Message received with correlationId {x.CorrelationId} and the state is {x.Saga.CurrentState}"))
-                    .Respond(context => new SagaState { CurrentState  = context.Instance.CurrentState})
+                    . (context => new SagaInstance { CurrentState  = context.Saga.CurrentState})
+                    .Publish(context=>
+                        new ReserveFlightCommand(context.Message.CustomerId,context.Message.TourId,context.Message.FlightId,context.Message.FlightSeat),(context =>{Console.WriteLine("message published");} ))
                     .TransitionTo(Submitted));
 
             During(Submitted,
                 When(FlightReservedEvent)
                     .Then(x => x.Saga.CurrentState = (int)TourState.FlightReserved)
+                    .Then(x => Console.WriteLine($"Message received with correlationId {x.CorrelationId} and the state is {x.Saga.CurrentState}"))
+                    .Respond(context => new SagaInstance { CurrentState = context.Instance.CurrentState })
+                    .Publish(context =>
+                        new ReserveFlightCommand(context.Saga.ReservationDetail.CustomerId, context.Saga.CorrelationId, context.Saga.ReservationDetail.ReturnFlightId, context.Saga.ReservationDetail.ReturnFlightSeat), (context => { Console.WriteLine("message published"); }))
                     .TransitionTo(FlightReserved));
 
             During(FlightReserved,
                 Ignore(ReservationSubmittedEvent));
+
         }
 
 
     }
 
-    public class SagaState : SagaStateMachineInstance
+    public class SagaInstance : SagaStateMachineInstance
     {
         public Guid CorrelationId { get; set; }
         public int CurrentState { get; set; }
+        public ReservationDetail ReservationDetail { get; set; } 
 
+    }
+
+    public class ReservationDetail
+    {
+        public Guid CustomerId { get; set; }
+        public Guid HotelId { get; set; }
+        public int RoomNumber { get; set; }
+        public Guid FlightId { get; set; }
+        public int FlightSeat { get; set; }
+        public Guid ReturnFlightId { get; set; }
+        public int ReturnFlightSeat { get; set; }
+
+        public ReservationDetail()
+        {
+            
+        }
+        public ReservationDetail(Guid customerId, Guid hotelId, int roomNumber, Guid flightId, int flightSeat, Guid returnFlightId, int returnFlightSeat)
+        {
+            CustomerId = customerId;
+            HotelId = hotelId;
+            RoomNumber = roomNumber;
+            FlightId = flightId;
+            FlightSeat = flightSeat;
+            ReturnFlightId = returnFlightId;
+            ReturnFlightSeat = returnFlightSeat;
+        }
     }
 
     public enum TourState

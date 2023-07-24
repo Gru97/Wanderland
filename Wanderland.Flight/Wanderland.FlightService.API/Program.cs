@@ -1,16 +1,22 @@
 using Hellang.Middleware.ProblemDetails;
+using MassTransit;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Wanderland.Flight.API;
+using Wanderland.Flight.API.Controllers;
+using Wanderland.Flight.API.Services;
 using Wanderland.Flight.Domain;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddTransient<FlightReservationService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.ConfigureMassTransit();
 builder.Services.AddProblemDetails(option =>
 {
     option.Map<DomainException>((ctx, exception) =>

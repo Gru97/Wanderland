@@ -24,12 +24,12 @@ namespace Wanderland.Tour.API.Controllers
             var tourId= await _tourService.Reserve(new ReserveTourCommand()
             {
                 HotelId = dto.HotelId,
-                ArrivalFlightId = dto.ArrivalFlightId,
-                DepartureFlightId = dto.DepartureFlightId,
-                ArrivalFlightSeat = dto.ArrivalFlightSeat,
-                DepartureFlightSeat = dto.DepartureFlightSeat,
+                FlightId = dto.ArrivalFlightId,
+                ReturnFlightId = dto.DepartureFlightId,
+                FlightSeat = dto.ArrivalFlightSeat,
+                ReturnFlightSeat = dto.DepartureFlightSeat,
                 RoomNumber = dto.RoomNumber,
-                CustomerId= Guid.NewGuid()
+                CustomerId= Guid.NewGuid()  //TODO:
             });
             
             return Ok(tourId);

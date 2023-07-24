@@ -11,9 +11,9 @@ namespace Wanderland.Tour.Application.Commands
         public Guid CustomerId { get; set; }
         public Guid HotelId { get; set; }
         public int RoomNumber { get; set; }
-        public Guid ArrivalFlightId { get; set; }
-        public int ArrivalFlightSeat { get; set; }
-        public Guid DepartureFlightId { get; set; }
-        public int DepartureFlightSeat { get; set; }
+        public Guid FlightId { get; set; }
+        public int FlightSeat { get; set; }
+        public Guid ReturnFlightId { get; set; }
+        public int ReturnFlightSeat { get; set; }
     }
 }
