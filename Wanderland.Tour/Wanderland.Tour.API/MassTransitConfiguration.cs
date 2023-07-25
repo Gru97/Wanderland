@@ -25,6 +25,7 @@ namespace Wanderland.Tour.API
                     });
 
                     cfg.ConfigureEndpoints(ctx);
+                    cfg.AutoStart=true;
                 });
             });
 

@@ -1,10 +1,19 @@
 using Hellang.Middleware.ProblemDetails;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
+using Serilog.Events;
 using Wanderland.Tour.API;
 using Wanderland.Tour.Application;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Host.UseSerilog((context, services, configs) =>
+{
+    configs
+        .MinimumLevel.Debug()
+        .WriteTo.Console()
+        .WriteTo.File("logs.txt",LogEventLevel.Debug)
+        .CreateLogger();
+});
 // Add services to the container.
 
 builder.Services.AddControllers();
