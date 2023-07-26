@@ -13,7 +13,7 @@ namespace Wanderland.Tour.API
                 x.AddSagaStateMachine<TourReservationStateMachine, SagaInstance>()
                     .InMemoryRepository();
 
-                x.AddRequestClient<SagaInstance>();
+                x.AddRequestClient<SagaStateRequestedEvent>();
 
 
                 x.UsingRabbitMq((ctx, cfg) =>

@@ -1,4 +1,5 @@
-﻿using MassTransit;
+﻿using System.ComponentModel;
+using MassTransit;
 using Wanderland.Contracts.Commands;
 using Wanderland.Contracts.Events;
 using Wanderland.Tour.Application.Commands;
@@ -9,9 +10,9 @@ namespace Wanderland.Tour.Application
     public class TourReservationService
     {
         private readonly IPublishEndpoint _publishEndpoint;
-        private IRequestClient<SagaInstance> _requestClient;
+        private IRequestClient<SagaStateRequestedEvent> _requestClient;
 
-        public TourReservationService(IPublishEndpoint publishEndpoint, IRequestClient<SagaInstance> requestClient)
+        public TourReservationService(IPublishEndpoint publishEndpoint, IRequestClient<SagaStateRequestedEvent> requestClient)
         {
             _publishEndpoint = publishEndpoint;
             _requestClient = requestClient;
@@ -25,7 +26,7 @@ namespace Wanderland.Tour.Application
             //await _dbContext.Tours.AddAsync(tour, cancellationToken);
             //await _dbContext.SaveChangesAsync(cancellationToken);
 
-            var tourId = Guid.Parse("008f0d2e-c904-4f5d-98a9-0153bca459e6");
+            var tourId = Guid.NewGuid();
             await _publishEndpoint.Publish(new ReservationSubmittedEvent
             {
                 FlightId = command.FlightId,
@@ -41,18 +42,19 @@ namespace Wanderland.Tour.Application
             return tourId;
         }
 
-        public async Task<string> GetState(string id)
+        public async Task<string> GetState(string id, CancellationToken token)
         {
             try
             {
-                var result = await _requestClient.GetResponse<SagaInstance>(new { CorrelationId = id });
+                var result = await _requestClient.GetResponse<SagaStateResponse>
+                    (new SagaStateRequestedEvent { TourId = Guid.Parse(id) }, token);
 
-                return result.Message.CurrentState.ToString();
+                var tourState = (TourState)result.Message.State;
+                return tourState.GetDescription();
             }
-            catch (Exception e)
+            catch (RequestTimeoutException e)
             {
-                Console.WriteLine(e);
-                throw;
+                throw new ApplicationException("Error while processing your request. The server didn't respond.");
             }
             
         }
@@ -67,6 +69,7 @@ namespace Wanderland.Tour.Application
         //Events
         public Event<ReservationSubmittedEvent> ReservationSubmittedEvent { get; private set; }
         public Event<FlightReservedEvent> FlightReservedEvent { get; private set; }
+        public Event<SagaStateRequestedEvent> SagaStateRequestedEvent { get; private set; }
 
 
         public TourReservationStateMachine()
@@ -74,26 +77,32 @@ namespace Wanderland.Tour.Application
             //how to correlate the event to an instance.
             Event(() => ReservationSubmittedEvent, x => x.CorrelateById(context => context.Message.TourId));
             Event(() => FlightReservedEvent, x => x.CorrelateById(context => context.Message.TourId));
+            Event(() => SagaStateRequestedEvent, x => x.CorrelateById(context => context.Message.TourId));
 
             //what states we have
+            // 0 - None, 1 - Initial, 2 - Final
             InstanceState(x => x.CurrentState, Submitted, FlightReserved);
 
             //what behaviors we have
             Initially(
                 When(ReservationSubmittedEvent)
-                    .Then(x => x.Saga.CurrentState = (int)TourState.Submitted)
                     .Then(x => x.Saga.ReservationDetail = new ReservationDetail(x.Message.CustomerId, x.Message.HotelId, x.Message.RoomNumber, x.Message.FlightId,x.Message.FlightSeat,x.Message.ReturnFlightId,x.Message.ReturnFlightSeat))
                     .Then(x=> Console.WriteLine($"Message received with correlationId {x.CorrelationId} and the state is {x.Saga.CurrentState}"))
-                    . (context => new SagaInstance { CurrentState  = context.Saga.CurrentState})
                     .Publish(context=>
                         new ReserveFlightCommand(context.Message.CustomerId,context.Message.TourId,context.Message.FlightId,context.Message.FlightSeat),(context =>{Console.WriteLine("message published");} ))
                     .TransitionTo(Submitted));
 
+            DuringAny(
+                When(SagaStateRequestedEvent)
+                    .Respond(context => new SagaStateResponse
+                    {
+                        State =  context.Saga.CurrentState ,TourId = context.Saga.CorrelationId
+                    })
+            );
+
             During(Submitted,
                 When(FlightReservedEvent)
-                    .Then(x => x.Saga.CurrentState = (int)TourState.FlightReserved)
                     .Then(x => Console.WriteLine($"Message received with correlationId {x.CorrelationId} and the state is {x.Saga.CurrentState}"))
-                    .Respond(context => new SagaInstance { CurrentState = context.Instance.CurrentState })
                     .Publish(context =>
                         new ReserveFlightCommand(context.Saga.ReservationDetail.CustomerId, context.Saga.CorrelationId, context.Saga.ReservationDetail.ReturnFlightId, context.Saga.ReservationDetail.ReturnFlightSeat), (context => { Console.WriteLine("message published"); }))
                     .TransitionTo(FlightReserved));
@@ -114,6 +123,15 @@ namespace Wanderland.Tour.Application
 
     }
 
+    public class SagaStateRequestedEvent
+    {
+        public Guid TourId { get; set; }
+    }
+    public class SagaStateResponse
+    {
+        public int State { get; set; }
+        public Guid TourId { get; set; }
+    }
     public class ReservationDetail
     {
         public Guid CustomerId { get; set; }
@@ -142,10 +160,25 @@ namespace Wanderland.Tour.Application
 
     public enum TourState
     {
-        Undefined=0,
-        Submitted=1,
-        FlightReserved=2
+        [Description("Request sumbitted")]
+        Submitted=3,
+        [Description("Flight reserved")]
+        FlightReserved = 4
 
+    }
+
+    public static class EnumExtensions
+    {
+        public static string GetDescription(this Enum enumValue)
+        {
+            var descriptionAttribute = enumValue.GetType()
+                .GetField(enumValue.ToString())
+                .GetCustomAttributes(false)
+                .SingleOrDefault(attr => attr.GetType() == typeof(DescriptionAttribute)) as DescriptionAttribute;
+
+            // return description
+            return descriptionAttribute?.Description ?? "";
+        }
     }
 }
 

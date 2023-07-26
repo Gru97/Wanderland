@@ -11,8 +11,8 @@ builder.Host.UseSerilog((context, services, configs) =>
     configs
         .MinimumLevel.Debug()
         .WriteTo.Console()
-        .WriteTo.File("logs.txt",LogEventLevel.Debug)
-        .CreateLogger();
+        .WriteTo.File("logs.txt", LogEventLevel.Debug);
+
 });
 // Add services to the container.
 

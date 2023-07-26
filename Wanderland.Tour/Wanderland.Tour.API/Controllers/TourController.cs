@@ -36,9 +36,9 @@ namespace Wanderland.Tour.API.Controllers
         }
 
         [HttpGet("Tour/{id}/State")]
-        public async Task<IActionResult> GetTour(string id)
+        public async Task<IActionResult> GetTour(string id, CancellationToken token)
         {
-            var tour= await _tourService.GetState(id);
+            var tour= await _tourService.GetState(id, token);
             return Ok(tour);
         }
 
