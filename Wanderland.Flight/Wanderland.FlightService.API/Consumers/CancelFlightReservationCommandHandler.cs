@@ -1,5 +1,5 @@
 ﻿using MassTransit;
-using Wanderland.Contracts.Commands;
+using Wanderland.Contract.Commands;
 using Wanderland.Flight.API.Services;
 
 namespace Wanderland.Flight.API.Consumers
