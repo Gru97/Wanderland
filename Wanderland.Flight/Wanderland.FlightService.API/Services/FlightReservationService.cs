@@ -18,5 +18,20 @@ namespace Wanderland.Flight.API.Services
 
             flight.ReserveTicket(new Passenger(dto.PassengerId), dto.SeatNumber);
         }
+
+        public void Cancel(ReserveFlightDto dto)
+        {
+            //var flight= _flights.SingleOrDefault(e=>e.Id==dto.FlightId);
+            var flight = _flights.FirstOrDefault();
+            if (flight == null)
+                throw new ApplicationException("Flight Can't be found.");
+
+            flight.CancelReservation(dto.SeatNumber);
+        }
+
+        public List<Domain.Flight> GetAllFlights()
+        {
+            return _flights.ToList();
+        }
     }
 }

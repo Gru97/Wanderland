@@ -9,6 +9,8 @@ public enum TourState
     [Description("Flight reserved")]
     FlightReserved = 4,
     [Description("Return flight reserved")]
-    ReturnFlightReserved
+    ReturnFlightReserved=5,
+    [Description("Tour reservation failed")]
+    TourReservationFailed = 6
 
 }

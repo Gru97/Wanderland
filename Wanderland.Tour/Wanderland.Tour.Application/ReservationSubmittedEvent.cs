@@ -16,3 +16,8 @@ public class FlightReservedEvent
     public Guid TourId { get; set; }
     public DateTime ReservedAt { get; set; }
 }
+public class FlightReservationFailedEvent
+{
+    public Guid TourId { get; set; }
+    public Guid FlightId { get; set; }
+}

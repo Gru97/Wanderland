@@ -55,8 +55,20 @@ namespace Wanderland.Flight.Domain
             return new FlightTicket(Id, passenger, seatNumber);
         }
 
-       
-       
+
+        public void CancelReservation(int seatNumber)
+        {
+            Guard.Against(seatNumber == 0 || seatNumber > SeatCount, new DomainException(ErrorMessage.SeatNumberIsInvalid));
+
+            var seat = Seats.Find(e => e.Number == seatNumber);
+            if (seat == null)
+                throw new DomainException(ErrorMessage.SeatNumberIsInvalid);
+
+            if (!seat.IsReserved)
+                throw new DomainException(ErrorMessage.SeatIsNotReserved);
+
+            seat.Free();
+        }
     }
 
     public class Seat
@@ -70,6 +82,11 @@ namespace Wanderland.Flight.Domain
         public void Reserve()
         {
             IsReserved = true;
+        }
+
+        public void Free()
+        {
+            IsReserved = false;
         }
     }
 

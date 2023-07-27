@@ -1,7 +1,4 @@
-using MassTransit;
 using Microsoft.AspNetCore.Mvc;
-using Wanderland.Contracts.Commands;
-using Wanderland.Contracts.Events;
 using Wanderland.Flight.API.Services;
 
 namespace Wanderland.Flight.API.Controllers
@@ -25,27 +22,12 @@ namespace Wanderland.Flight.API.Controllers
             _flightService.Reserve(dto);
             return Ok();
         }
-    }
 
-    public class ReserveFlightCommandHandler: IConsumer<ReserveFlightCommand>
-    {
-        private readonly FlightReservationService _flightService;
-
-        public ReserveFlightCommandHandler(FlightReservationService flightService)
+        [HttpGet]
+        public IActionResult GetAll()
         {
-            _flightService = flightService;
-        }
-
-        public Task Consume(ConsumeContext<ReserveFlightCommand> context)
-        {
-            _flightService.Reserve(new ReserveFlightDto()
-            {
-                FlightId = context.Message.FlightId,
-                PassengerId = context.Message.CustomerId,
-                SeatNumber = context.Message.FlightSeat
-            });
-            context.Publish(new FlightReservedEvent(context.Message.TourId, DateTime.UtcNow));
-            return Task.CompletedTask;
+            var result = _flightService.GetAllFlights();
+            return Ok(result);
         }
     }
 }

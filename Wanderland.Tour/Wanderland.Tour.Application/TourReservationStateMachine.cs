@@ -9,12 +9,14 @@ public class TourReservationStateMachine : MassTransitStateMachine<SagaInstance>
     //States
     public State Submitted { get; private set; }
     public State FlightReserved { get; private set; }
+    public State TourReservationFailed { get; private set; }
     public State ReturnFlightReserved { get; private set; }
 
     //Events
     public Event<ReservationSubmittedEvent> ReservationSubmittedEvent { get; private set; }
     public Event<FlightReservedEvent> FlightReservedEvent { get; private set; }
     public Event<SagaStateRequestedEvent> SagaStateRequestedEvent { get; private set; }
+    public Event<FlightReservationFailedEvent> FlightReservationFailedEvent { get; private set; }
 
 
     public TourReservationStateMachine()
@@ -23,10 +25,11 @@ public class TourReservationStateMachine : MassTransitStateMachine<SagaInstance>
         Event(() => ReservationSubmittedEvent, x => x.CorrelateById(context => context.Message.TourId));
         Event(() => FlightReservedEvent, x => x.CorrelateById(context => context.Message.TourId));
         Event(() => SagaStateRequestedEvent, x => x.CorrelateById(context => context.Message.TourId));
+        Event(() => FlightReservationFailedEvent, x => x.CorrelateById(context => context.Message.TourId));
 
         //what states we have
         // 0 - None, 1 - Initial, 2 - Final
-        InstanceState(x => x.CurrentState, Submitted, FlightReserved, ReturnFlightReserved);
+        InstanceState(x => x.CurrentState, Submitted, FlightReserved, ReturnFlightReserved, TourReservationFailed);
 
         //what behaviors we have
         Initially(
@@ -39,19 +42,28 @@ public class TourReservationStateMachine : MassTransitStateMachine<SagaInstance>
 
         During(Submitted,
             When(FlightReservedEvent)
-                .Then(x => Console.WriteLine(
-                    $"Message received with correlationId {x.CorrelationId} and the state is {x.Saga.CurrentState}"))
+                .Then(x => Console.WriteLine($"Message received with correlationId {x.CorrelationId} and the state is {x.Saga.CurrentState}"))
                 .Publish(context =>
                         new ReserveFlightCommand(context.Saga.ReservationDetail.CustomerId, context.Saga.CorrelationId,
                             context.Saga.ReservationDetail.ReturnFlightId,
                             context.Saga.ReservationDetail.ReturnFlightSeat),
                     (context => { Console.WriteLine("During submitted, ReserveFlightCommand message published"); }))
                 .TransitionTo(FlightReserved));
-          
+
+        During(Submitted, When(FlightReservationFailedEvent)
+            .Then(context => Console.WriteLine($"Message received with correlationId {context.CorrelationId} and the state is {context.Saga.CurrentState}"))
+            .TransitionTo(TourReservationFailed));
+
         During(FlightReserved,
             When(FlightReservedEvent)
                 .Then(x => Console.WriteLine($"During FlightReserved, FlightReservedEvent Message received with correlationId {x.CorrelationId} and the state is {x.Saga.CurrentState}"))
                 .TransitionTo(ReturnFlightReserved));
+
+        During(FlightReserved,
+            When(FlightReservationFailedEvent)
+                .Then(x => Console.WriteLine($"During FlightReserved, FlightReservationFailedEvent Message received with correlationId {x.CorrelationId} and the state is {x.Saga.CurrentState}"))
+                .Publish(context=>new  CancelFlightReservationCommand(context.Saga.ReservationDetail.CustomerId, context.Message.TourId, context.Saga.ReservationDetail.FlightId, context.Saga.ReservationDetail.FlightSeat))
+                .TransitionTo(TourReservationFailed));
 
 
         During(FlightReserved,
