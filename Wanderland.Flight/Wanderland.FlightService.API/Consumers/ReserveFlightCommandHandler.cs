@@ -1,6 +1,6 @@
 using MassTransit;
-using Wanderland.Contracts.Commands;
-using Wanderland.Contracts.Events;
+using Wanderland.Contract.Commands;
+using Wanderland.Contract.Events;
 using Wanderland.Flight.API.Services;
 using Wanderland.Flight.Domain;
 

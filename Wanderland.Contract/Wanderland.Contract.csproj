@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	<RepositoryUrl>https://github.com/Gru97/Wanderland.git</RepositoryUrl>
+	<PackageId>Wanderland.Contract</PackageId>
+	<Version>1.0.0</Version>
+	<Authors>Gru97</Authors>
+	<PackageDescription>This is shared contract between microservices in wanderland project</PackageDescription>
+  </PropertyGroup>
+
+</Project>

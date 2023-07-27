@@ -1,5 +1,5 @@
 ﻿using MassTransit;
-using Wanderland.Contracts.Commands;
+using Wanderland.Contract.Commands;
 using Wanderland.Contracts.Events;
 
 namespace Wanderland.Tour.Application;

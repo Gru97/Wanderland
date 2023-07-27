@@ -5,7 +5,9 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wanderland.Tour.API", "Wanderland.Tour.API\Wanderland.Tour.API.csproj", "{82FC02E6-8750-4DD9-8C8E-5A26FC0CA4E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wanderland.Tour.Application", "Wanderland.Tour.Application\Wanderland.Tour.Application.csproj", "{7FE0DAB4-6973-464A-BAA6-66922E808769}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wanderland.Tour.Application", "Wanderland.Tour.Application\Wanderland.Tour.Application.csproj", "{7FE0DAB4-6973-464A-BAA6-66922E808769}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wanderland.Tour.IntegrationTest", "Wanderland.Tour.IntegrationTest\Wanderland.Tour.IntegrationTest.csproj", "{D292ACB4-2D2A-4681-A3DF-7910485DB999}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{7FE0DAB4-6973-464A-BAA6-66922E808769}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7FE0DAB4-6973-464A-BAA6-66922E808769}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7FE0DAB4-6973-464A-BAA6-66922E808769}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D292ACB4-2D2A-4681-A3DF-7910485DB999}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D292ACB4-2D2A-4681-A3DF-7910485DB999}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D292ACB4-2D2A-4681-A3DF-7910485DB999}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D292ACB4-2D2A-4681-A3DF-7910485DB999}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
